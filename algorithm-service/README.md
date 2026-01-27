@@ -43,7 +43,7 @@ algorithm-service/
 
 ## 任务状态查询
 
-新增 `ListTasks` 接口可查询当前服务内记录的任务状态：
+`ListTasks` 接口可查询当前服务内记录的任务状态：
 - `status`: QUEUED / RUNNING / SUCCESS / FAILED
 - `percentage`, `message`, `updated_at`
 
@@ -51,9 +51,4 @@ algorithm-service/
 
 任务状态会落盘到 SQLite：`algorithm-service/data/tasks.db`。
 
-新增 `GetTaskStatus(task_id)` 用于查询单个任务的状态记录。
-
-## 常见问题
-
-- `ListTasks` 返回 `13 INTERNAL: Failed to parse server response` 通常是客户端仍在使用旧版 `algorithm.proto`。
-  请让客户端重新加载最新 `algorithm.proto` 并重启服务端以加载新生成的 `algorithm_pb2*`。
+`GetTaskStatus(task_id)` 用于查询单个任务的状态记录。
