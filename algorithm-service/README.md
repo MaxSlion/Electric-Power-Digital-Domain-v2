@@ -25,7 +25,7 @@ algorithm-service/
    - 使用 `grpcio-tools` 将 [proto/algorithm.proto](algorithm-service/proto/algorithm.proto) 编译为 `*_pb2.py` 文件。
 
 3. 运行服务：
-   - 直接运行 [algorithm-service/main.py](algorithm-service/main.py) 会启动本地调度器并加载插件。
+   - 直接运行 [main.py](main.py) 会启动本地调度器并加载插件。
 
 ## 插件开发规范
 
