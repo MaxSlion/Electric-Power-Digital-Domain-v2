@@ -35,7 +35,7 @@ algorithm-service/
 4. 插件目录支持多级结构（例如 `plugins/M01/WF01/xxx.py`），服务会递归扫描并在返回中补充 `model = "M01-WF01"`。
 
 参考实现：
-- [algorithm-service/plugins/M01/WF01/m02_safety_check.py](algorithm-service/plugins/M01/WF01/m02_safety_check.py)
+- [plugins/M01/WF01/m02_safety_check.py](plugins/M01/WF01/m02_safety_check.py)
 
 ## 服务发现返回字段
 
