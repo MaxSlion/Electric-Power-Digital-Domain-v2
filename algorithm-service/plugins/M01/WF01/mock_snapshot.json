@@ -1,0 +1,8 @@
+{
+  "grid_id": "demo-grid-001",
+  "timestamp": "2026-01-27T10:00:00Z",
+  "loads": [
+    {"bus": "B1", "p_mw": 120.5},
+    {"bus": "B2", "p_mw": 98.3}
+  ]
+}

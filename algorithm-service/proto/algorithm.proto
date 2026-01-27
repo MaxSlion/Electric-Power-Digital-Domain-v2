@@ -1,0 +1,81 @@
+syntax = "proto3";
+package algorithm;
+
+service AlgoControlService {
+    rpc GetAvailableSchemes (Empty) returns (SchemeList);
+    rpc SubmitTask (TaskRequest) returns (TaskSubmissionResponse);
+    rpc CheckHealth (Empty) returns (HealthStatus);
+    rpc WatchTaskProgress (TaskIdentity) returns (stream ProgressUpdate);
+    rpc ListTasks (Empty) returns (TaskList);
+    rpc GetTaskStatus (TaskIdentity) returns (TaskStatus);
+}
+
+service ResultReceiverService {
+    rpc ReportResult (TaskResult) returns (Ack);
+}
+
+message SchemeList {
+    message Scheme {
+        string model = 1;
+        string code = 2;
+        string name = 3;
+        string class_name = 4;
+        string resource_type = 5;
+    }
+    repeated Scheme schemes = 1;
+}
+
+message TaskRequest {
+    string task_id = 1;
+    string scheme_code = 2;
+    string data_ref = 3;
+    string params_json = 4;
+}
+
+message TaskSubmissionResponse {
+    bool accepted = 1;
+    string message = 2;
+}
+
+message ProgressUpdate {
+    string task_id = 1;
+    int32 percentage = 2;
+    string message = 3;
+    int64 timestamp = 4;
+}
+
+message TaskResult {
+    string task_id = 1;
+    enum Status {
+        SUCCESS = 0;
+        FAILED = 1;
+    }
+    Status status = 2;
+    string result_json = 3;
+    string error_message = 4;
+    string log_path = 5;
+}
+
+message HealthStatus {
+    enum ServingStatus { UNKNOWN=0; SERVING=1; NOT_SERVING=2; }
+    ServingStatus status = 1;
+    map<string, string> metrics = 2;
+}
+
+message Empty {}
+message TaskIdentity { string task_id = 1; }
+message Ack { bool success = 1; }
+
+message TaskStatus {
+    string task_id = 1;
+    string scheme_code = 2;
+    string status = 3;
+    int32 percentage = 4;
+    string message = 5;
+    string error_message = 6;
+    int64 updated_at = 7;
+}
+
+message TaskList {
+    repeated TaskStatus tasks = 1;
+}
