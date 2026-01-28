@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Logging configuration for the algorithm service.
 """

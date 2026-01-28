@@ -3,6 +3,7 @@
 
 docs/
 data/
+plugins/
 
 algorithm-service/logs/
 algorithm-service/**/__pycache__/

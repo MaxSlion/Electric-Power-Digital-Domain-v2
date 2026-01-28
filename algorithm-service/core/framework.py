@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 Framework module defining the base classes and registry for algorithms.
 """

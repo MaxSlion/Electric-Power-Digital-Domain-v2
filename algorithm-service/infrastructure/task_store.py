@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+
 """
 SQLite-backed task store for tracking algorithm execution status.
 """

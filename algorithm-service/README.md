@@ -45,10 +45,12 @@ algorithm-service/
 
 `ListTasks` 接口可查询当前服务内记录的任务状态：
 - `status`: QUEUED / RUNNING / SUCCESS / FAILED
-- `percentage`, `message`, `updated_at`
+- `percentage`, `message`, `updated_at`, `error_message`
 
-`WatchTaskProgress` 在任务完成后再次调用会立即返回最近一次进度并结束。
+`WatchTaskProgress` 是 gRPC Server Streaming：
+- 前端应在 `SubmitTask` 后立即建立流并保持连接以获得实时进度。
+- 任务已完成后再次调用会返回最近一次进度并结束（用于回放/补偿）。
 
-任务状态会落盘到 SQLite：`algorithm-service/data/tasks.db`。
+任务状态会落盘到 SQLite：`algorithm-service/data/tasks.db`（主进程写入）。
 
 `GetTaskStatus(task_id)` 用于查询单个任务的状态记录。
