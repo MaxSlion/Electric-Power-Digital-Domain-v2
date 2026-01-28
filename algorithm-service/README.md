@@ -33,9 +33,26 @@ algorithm-service/
 2. 实现 `meta_info` 与 `execute()`。
 3. 使用 `@AlgorithmRegistry.register` 装饰器注册。
 4. 插件目录支持多级结构（例如 `plugins/M01/WF01/xxx.py`），服务会递归扫描并在返回中补充 `model = "M01-WF01"`。
+5. 插件输入仅使用 `ctx.data` 与 `ctx.params`，禁止读取 `data_ref`。
 
 参考实现：
 - [plugins/M01/WF01/m02_safety_check.py](plugins/M01/WF01/m02_safety_check.py)
+
+## 数据接入（服务层解析）
+
+`SubmitTask` 的 `data_ref` 由服务层统一解析并加载为 `pandas.DataFrame`，然后注入 `AlgorithmContext.data`。
+
+支持：
+- 文件：本地路径或 `file://`
+   - 示例：`D:/data/realtime.csv`
+   - 示例：`file:///D:/data/realtime.csv`
+- MySQL：
+   - `mysql://user:pass@host:3306/db?table=table_name`
+   - `mysql://user:pass@host:3306/db?query=SELECT%20*%20FROM%20table_name`
+- Redis：
+   - `redis://host:6379/0?key=some_key&type=string|hash|list`
+
+> 约束：服务层必须输出 `pandas.DataFrame`，否则任务失败。
 
 ## 服务发现返回字段
 

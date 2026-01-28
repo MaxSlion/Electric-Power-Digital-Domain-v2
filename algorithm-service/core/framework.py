@@ -15,10 +15,10 @@ import sys
 class AlgorithmContext:
     """Context provided to algorithms during execution."""
 
-    def __init__(self, task_id, data_ref, params, reporter_stub, logger):
+    def __init__(self, task_id, params, reporter_stub, logger, data=None):
         self.task_id = task_id
-        self.data_ref = data_ref
         self.params = params
+        self.data = data
         self._reporter = reporter_stub
         self._logger = logger
 

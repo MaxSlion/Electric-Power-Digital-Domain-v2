@@ -14,6 +14,7 @@ from .resource_manager import HardwareManager
 from .framework import AlgorithmRegistry, AlgorithmContext
 from .plugin_loader import load_plugins
 from infrastructure.progress_manager import ProgressManager
+from infrastructure.data_loader import load_data_ref
 from infrastructure.rpc_client import ResultReporterClient
 from infrastructure.task_store import TaskStore
 from infrastructure.logging_config import configure_logging
@@ -77,10 +78,11 @@ def _run_task_in_subprocess(
 
     logger = logging.getLogger("AlgoService")
     progress_stub = ProgressQueueReporter(progress_queue, status_proxy=status_proxy)
-    ctx = AlgorithmContext(task_id, data_ref, params, progress_stub, logger)
     reporter = ResultReporterClient(target=reporter_target)
 
     try:
+        data, _ = load_data_ref(data_ref)
+        ctx = AlgorithmContext(task_id, params, progress_stub, logger, data=data)
         ctx.log(logging.INFO, f"Task Started. Scheme: {algo.meta_info['name']}")
         ctx.report_progress(0, "Initializing...")
         result = algo.execute(ctx)
@@ -211,9 +213,10 @@ class TaskDispatcher:
 
         logger = logging.getLogger("AlgoService")
         progress_stub = ProgressQueueReporter(progress_queue, status_proxy=status_proxy)
-        ctx = AlgorithmContext(task_id, data_ref, params, progress_stub, logger)
 
         try:
+            data, _ = load_data_ref(data_ref)
+            ctx = AlgorithmContext(task_id, params, progress_stub, logger, data=data)
             ctx.log(logging.INFO, f"Task Started. Scheme: {algo.meta_info['name']}")
             ctx.report_progress(0, "Initializing...")
             result = algo.execute(ctx)
