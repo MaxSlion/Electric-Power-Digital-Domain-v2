@@ -9,11 +9,12 @@ import importlib.util
 import os
 import sys
 from pathlib import Path
+from typing import Any
 
 from core.framework import AlgorithmRegistry
 
 
-def _import_module_from_path(module_name: str, module_path: str):
+def _import_module_from_path(module_name: str, module_path: str) -> Any:
     """Import a module given its file path."""
 
     spec = importlib.util.spec_from_file_location(module_name, module_path)
@@ -36,7 +37,7 @@ def _should_import(module_path: str) -> bool:
     return any(marker in content for marker in markers)
 
 
-def load_plugins(package_name: str = "plugins"):
+def load_plugins(package_name: str = "plugins") -> None:
     """Dynamically load all modules in the specified package."""
 
     package = importlib.import_module(package_name)

@@ -7,7 +7,7 @@ gRPC client for reporting algorithm task results.
 import json
 import logging
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import grpc
 
@@ -17,7 +17,7 @@ from proto import algorithm_pb2, algorithm_pb2_grpc
 class ResultReporterClient:
     """gRPC client to report algorithm task results."""
 
-    def __init__(self, target: Optional[str] = None, grpc_stub=None):
+    def __init__(self, target: Optional[str] = None, grpc_stub: Optional[Any] = None) -> None:
         self._target = target
         self._channel = None
         if grpc_stub is not None:
@@ -28,10 +28,10 @@ class ResultReporterClient:
         else:
             self._stub = None
 
-    def send_result(self, task_id, status, data=None, error=None):
+    def send_result(self, task_id: str, status: str, data: Any = None, error: Optional[str] = None) -> None:
         """Send the result of an algorithm task to the result receiver service."""
 
-        def _json_safe(obj):
+        def _json_safe(obj: Any) -> Any:
             # Convert non-serializable objects to JSON-safe formats
 
             try:

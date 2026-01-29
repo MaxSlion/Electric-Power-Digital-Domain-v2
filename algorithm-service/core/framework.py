@@ -10,25 +10,26 @@ from abc import ABC, abstractmethod
 import logging
 import os
 import sys
+from typing import Any, Dict, Optional, Type
 
 
 class AlgorithmContext:
     """Context provided to algorithms during execution."""
 
-    def __init__(self, task_id, params, reporter_stub, logger, data=None):
+    def __init__(self, task_id: str, params: Dict[str, Any], reporter_stub: Any, logger: logging.Logger, data: Any = None) -> None:
         self.task_id = task_id
         self.params = params
         self.data = data
         self._reporter = reporter_stub
         self._logger = logger
 
-    def log(self, level, message):
+    def log(self, level: int, message: str) -> None:
         """Log a message with the given severity level."""
 
         full_msg = f"[{self.task_id}] {message}"
         self._logger.log(level, full_msg)
 
-    def report_progress(self, percentage, message):
+    def report_progress(self, percentage: int, message: str) -> None:
         """Report progress of the algorithm execution."""
 
         self._reporter.update(self.task_id, percentage, message)
@@ -39,11 +40,11 @@ class BaseAlgorithm(ABC):
 
     @property
     @abstractmethod
-    def meta_info(self) -> dict:
+    def meta_info(self) -> Dict[str, Any]:
         """Return metadata for service discovery."""
 
     @abstractmethod
-    def execute(self, ctx: AlgorithmContext) -> dict:
+    def execute(self, ctx: AlgorithmContext) -> Dict[str, Any]:
         """Core business logic entrypoint."""
 
 
@@ -55,13 +56,13 @@ class AlgorithmRegistry:
     _plugin_meta = {}
 
     @classmethod
-    def set_plugin_root(cls, plugin_root: str):
+    def set_plugin_root(cls, plugin_root: str) -> None:
         """Set the root directory for plugin discovery."""
 
         cls._plugin_root = os.path.abspath(plugin_root) if plugin_root else None
 
     @classmethod
-    def _derive_model(cls, module_file: str | None):
+    def _derive_model(cls, module_file: Optional[str]) -> Optional[str]:
         """Derive the model name from the module file path."""
 
         if not module_file or not cls._plugin_root:
@@ -76,7 +77,7 @@ class AlgorithmRegistry:
         return "-".join(parts)
 
     @classmethod
-    def register(cls, algorithm_cls):
+    def register(cls, algorithm_cls: Type[Any]) -> Type[Any]:
         """Decorator to register an algorithm class."""
 
         instance = algorithm_cls()
@@ -94,13 +95,13 @@ class AlgorithmRegistry:
         return algorithm_cls
 
     @classmethod
-    def get_algorithm(cls, code):
+    def get_algorithm(cls, code: str) -> Optional[Any]:
         """Retrieve an algorithm instance by its code."""
 
         return cls._registry.get(code)
 
     @classmethod
-    def get_all_schemes(cls):
+    def get_all_schemes(cls) -> list[Dict[str, Any]]:
         """Retrieve metadata for all registered algorithms."""
 
         schemes = []

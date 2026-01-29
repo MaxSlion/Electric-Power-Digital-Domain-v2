@@ -6,6 +6,7 @@ gRPC server implementation for algorithm control service.
 
 import json
 import logging
+from typing import Any, Dict, Iterable
 
 import grpc
 from concurrent import futures
@@ -20,11 +21,11 @@ from proto import algorithm_pb2, algorithm_pb2_grpc
 class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
     """gRPC service for algorithm control."""
 
-    def __init__(self, dispatcher):
+    def __init__(self, dispatcher: Any) -> None:
         self.dispatcher = dispatcher
         self.hardware = HardwareManager()
 
-    def GetAvailableSchemes(self, request, context):
+    def GetAvailableSchemes(self, request: Any, context: grpc.ServicerContext) -> Any:
         """Returns a list of available algorithm schemes."""
 
         schemes = [
@@ -39,7 +40,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         ]
         return algorithm_pb2.SchemeList(schemes=schemes) # type: ignore
 
-    def SubmitTask(self, request, context):
+    def SubmitTask(self, request: Any, context: grpc.ServicerContext) -> Any:
         """Submits a new algorithm task for processing."""
 
         try:
@@ -49,7 +50,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         self.dispatcher.dispatch(request.task_id, request.scheme_code, request.data_ref, params)
         return algorithm_pb2.TaskSubmissionResponse(accepted=True, message="Task accepted") # type: ignore
 
-    def CheckHealth(self, request, context):
+    def CheckHealth(self, request: Any, context: grpc.ServicerContext) -> Any:
         """Checks the health status of the service."""
 
         metrics = {
@@ -58,7 +59,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         }
         return algorithm_pb2.HealthStatus(status=algorithm_pb2.HealthStatus.SERVING, metrics=metrics) # type: ignore
 
-    def WatchTaskProgress(self, request, context):
+    def WatchTaskProgress(self, request: Any, context: grpc.ServicerContext) -> Iterable[Any]:
         """Streams progress updates for a given task."""
 
         manager = ProgressManager.get_instance()
@@ -75,7 +76,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         finally:
             manager.close_watcher(request.task_id)
 
-    def ListTasks(self, request, context):
+    def ListTasks(self, request: Any, context: grpc.ServicerContext) -> Any:
         """Returns a list of known tasks and their last status."""
 
         tasks = [
@@ -92,7 +93,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         ]
         return algorithm_pb2.TaskList(tasks=tasks) # type: ignore
 
-    def GetTaskStatus(self, request, context):
+    def GetTaskStatus(self, request: Any, context: grpc.ServicerContext) -> Any:
         """Returns the status of a specific task from the task store."""
 
         item = TaskStore().get_task(request.task_id)
@@ -107,7 +108,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         )
 
 
-def serve(dispatcher, host: str = "0.0.0.0", port: int = 50051):
+def serve(dispatcher: Any, host: str = "0.0.0.0", port: int = 50051) -> grpc.Server:
     """Starts the gRPC server for the AlgoControlService."""
 
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=8))

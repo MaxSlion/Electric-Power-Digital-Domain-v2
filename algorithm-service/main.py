@@ -16,7 +16,7 @@ from infrastructure.rpc_client import ResultReporterClient
 from infrastructure.grpc_server import serve
 
 
-def bootstrap():
+def bootstrap() -> TaskDispatcher:
     """Bootstrap the Algorithm Service components."""
 
     configure_logging()
@@ -32,7 +32,7 @@ def bootstrap():
     return dispatcher
 
 
-def main():
+def main() -> None:
     """Main function to start the gRPC server."""
 
     host = os.getenv("ALGO_GRPC_HOST", "0.0.0.0")
@@ -41,7 +41,7 @@ def main():
     dispatcher = bootstrap()
     server = serve(dispatcher, host=host, port=port)
 
-    def _shutdown(*_):
+    def _shutdown(*_: object) -> None:
         """Handle shutdown signals to gracefully stop the server."""
 
         logging.info("[gRPC] Shutting down...")

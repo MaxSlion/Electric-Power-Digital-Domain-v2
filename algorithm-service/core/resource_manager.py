@@ -7,6 +7,7 @@ Resource Manager for Hardware Detection and Executor Pools
 import logging
 import multiprocessing
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
+from typing import Any
 
 
 class HardwareManager:
@@ -14,12 +15,12 @@ class HardwareManager:
 
     _instance = None
 
-    def __new__(cls):
+    def __new__(cls) -> "HardwareManager":
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
 
-    def __init__(self):
+    def __init__(self) -> None:
         if getattr(self, "_initialized", False):
             return
         self._initialized = True
@@ -31,7 +32,7 @@ class HardwareManager:
         self._detect_hardware()
         self._init_pools()
 
-    def _detect_hardware(self):
+    def _detect_hardware(self) -> None:
         """Detect available hardware resources."""
 
         try:
@@ -49,7 +50,7 @@ class HardwareManager:
 
         logging.info("[Init] No GPU Detected. System running in CPU Mode.")
 
-    def _init_pools(self):
+    def _init_pools(self) -> None:
         """Initialize executor pools based on detected hardware."""
 
         cpu_cores = max(1, multiprocessing.cpu_count() - 2)
@@ -60,7 +61,7 @@ class HardwareManager:
         else:
             self.gpu_pool = self.cpu_pool
 
-    def get_executor(self, resource_pref: str):
+    def get_executor(self, resource_pref: str) -> Any:
         """Get the appropriate executor pool based on resource preference."""
 
         if resource_pref == "GPU" and self.has_gpu:

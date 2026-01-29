@@ -6,9 +6,10 @@ Progress Manager for Tracking Algorithm Task Progress
 
 import logging
 import multiprocessing
-import queue
 import threading
 import time
+from multiprocessing.managers import SyncManager
+from typing import Any, Dict, Optional
 
 
 class ProgressManager:
@@ -16,7 +17,7 @@ class ProgressManager:
 
     _instance = None
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._queues = {}
         self._result_sink = None
         self._manager = None
@@ -26,7 +27,7 @@ class ProgressManager:
         self._db_stats = {"success": 0, "fail": 0, "last_error": ""}
         self._db_stats_lock = threading.Lock()
 
-    def _get_manager(self):
+    def _get_manager(self) -> SyncManager:
         """Get or create the multiprocessing manager."""
 
         if self._manager is None:
@@ -35,12 +36,12 @@ class ProgressManager:
             self._status = self._manager.dict()
         return self._manager
 
-    def _new_queue(self):
+    def _new_queue(self) -> Any:
         """Create a new shared queue."""
 
         return self._get_manager().Queue()
 
-    def _get_status_store(self):
+    def _get_status_store(self) -> Any:
         """Get the shared status store."""
 
         self._get_manager()
@@ -48,7 +49,7 @@ class ProgressManager:
             self._status = self._manager.dict() if self._manager else {}
         return self._status
 
-    def _update_status(self, task_id, updates: dict):
+    def _update_status(self, task_id: str, updates: Dict[str, Any]) -> None:
         """Update the status of a task in the status store."""
 
         store = self._get_status_store()
@@ -57,19 +58,19 @@ class ProgressManager:
         store[task_id] = current
 
     @classmethod
-    def get_instance(cls):
+    def get_instance(cls) -> "ProgressManager":
         """Get the singleton instance of ProgressManager."""
 
         if not cls._instance:
             cls._instance = cls()
         return cls._instance
 
-    def bind_result_sink(self, sink):
+    def bind_result_sink(self, sink: Any) -> None:
         """Bind a result sink to report final task results."""
 
         self._result_sink = sink
 
-    def register_task(self, task_id, scheme_code, data_ref=""):
+    def register_task(self, task_id: str, scheme_code: str, data_ref: str = "") -> None:
         """Register a task in the status store."""
 
         now = int(time.time() * 1000)
@@ -86,7 +87,7 @@ class ProgressManager:
             },
         )
 
-    def record_progress(self, task_id, percent, message):
+    def record_progress(self, task_id: str, percent: int, message: str) -> None:
         """Record progress in the status store."""
 
         current = self.get_task(task_id)
@@ -103,7 +104,7 @@ class ProgressManager:
             },
         )
 
-    def mark_finished(self, task_id, status, message="Completed"):
+    def mark_finished(self, task_id: str, status: str, message: str = "Completed") -> None:
         """Mark a task as finished in the status store."""
 
         now = int(time.time() * 1000)
@@ -117,24 +118,24 @@ class ProgressManager:
             },
         )
 
-    def get_task(self, task_id):
+    def get_task(self, task_id: str) -> Dict[str, Any]:
         """Return the last known status for a task."""
 
         store = self._get_status_store()
         return dict(store.get(task_id, {}))
 
-    def list_tasks(self):
+    def list_tasks(self) -> list[Dict[str, Any]]:
         """Return all known tasks with their status."""
 
         store = self._get_status_store()
         return [dict(value) for value in store.values()]
 
-    def get_status_proxy(self):
+    def get_status_proxy(self) -> Any:
         """Return the shared status store proxy."""
 
         return self._get_status_store()
 
-    def register_watcher(self, task_id):
+    def register_watcher(self, task_id: str) -> Any:
         """Register a watcher for a specific task ID."""
 
         if task_id in self._queues:
@@ -153,7 +154,7 @@ class ProgressManager:
             q.put(payload)
         return q
 
-    def ensure_queue(self, task_id):
+    def ensure_queue(self, task_id: str) -> Any:
         """Ensure a shared queue exists for cross-process progress updates."""
 
         if task_id in self._queues:
@@ -162,7 +163,7 @@ class ProgressManager:
         self._queues[task_id] = q
         return q
 
-    def update(self, task_id, percent, message):
+    def update(self, task_id: str, percent: int, message: str) -> None:
         """Update the progress of a specific task."""
 
         payload = {
@@ -175,19 +176,19 @@ class ProgressManager:
         if task_id in self._queues:
             self._queues[task_id].put(payload)
 
-    def close_watcher(self, task_id):
+    def close_watcher(self, task_id: str) -> None:
         """Close the watcher for a specific task ID."""
 
         if task_id in self._queues:
             del self._queues[task_id]
 
-    def report_result(self, task_id, status, data=None, error=None):
+    def report_result(self, task_id: str, status: str, data: Any = None, error: Optional[str] = None) -> None:
         """Report the final result of a task to the result sink."""
 
         if self._result_sink:
             self._result_sink.send_result(task_id, status=status, data=data, error=error)
 
-    def _get_db_queue(self):
+    def _get_db_queue(self) -> Any:
         """Get or create the shared DB writer queue."""
 
         manager = self._get_manager()
@@ -195,7 +196,7 @@ class ProgressManager:
             self._db_queue = manager.Queue()
         return self._db_queue
 
-    def start_db_writer(self):
+    def start_db_writer(self) -> None:
         """Start a background DB writer thread in the main process."""
 
         if multiprocessing.current_process().name != "MainProcess":
@@ -203,7 +204,7 @@ class ProgressManager:
         if self._db_thread and self._db_thread.is_alive():
             return
 
-        def _worker(db_queue):
+        def _worker(db_queue: Any) -> None:
             from infrastructure.task_store import TaskStore
 
             store = TaskStore()
@@ -256,12 +257,12 @@ class ProgressManager:
         )
         self._db_thread.start()
 
-    def get_db_queue(self):
+    def get_db_queue(self) -> Any:
         """Return the shared DB writer queue."""
 
         return self._get_db_queue()
 
-    def get_db_stats(self):
+    def get_db_stats(self) -> Dict[str, Any]:
         """Return DB writer success/failure counters."""
 
         with self._db_stats_lock:

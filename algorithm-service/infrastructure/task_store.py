@@ -10,12 +10,13 @@ import sqlite3
 import time
 from contextlib import closing
 from pathlib import Path
+from typing import Optional
 
 
 class TaskStore:
     """SQLite-backed task store for tracking algorithm execution status."""
 
-    def __init__(self, db_path: str | None = None):
+    def __init__(self, db_path: Optional[str] = None) -> None:
         base_dir = Path(__file__).resolve().parents[1]
         data_dir = base_dir / "data"
         data_dir.mkdir(parents=True, exist_ok=True)
@@ -23,7 +24,7 @@ class TaskStore:
         self._conn = None
         self._ensure_db()
 
-    def _connect(self):
+    def _connect(self) -> sqlite3.Connection:
         """Establish a connection to the SQLite database."""
 
         if self._conn is None:
@@ -32,7 +33,7 @@ class TaskStore:
             self._conn.execute("PRAGMA synchronous=NORMAL;")
         return self._conn
 
-    def _execute_with_retry(self, sql: str, params: tuple = (), retries: int = 3):
+    def _execute_with_retry(self, sql: str, params: tuple = (), retries: int = 3) -> sqlite3.Cursor:
         """Execute a SQL statement with retries on database lock."""
 
         last_exc = None
@@ -48,7 +49,7 @@ class TaskStore:
             raise last_exc
         raise RuntimeError("Failed to execute SQL statement after retries.")
 
-    def _ensure_db(self):
+    def _ensure_db(self) -> None:
         """Ensure the tasks table exists in the database."""
 
         conn = self._connect()
@@ -78,7 +79,7 @@ class TaskStore:
 
         return int(time.time() * 1000)
 
-    def upsert_task_start(self, task_id: str, scheme_code: str, data_ref: str = ""):
+    def upsert_task_start(self, task_id: str, scheme_code: str, data_ref: str = "") -> None:
         """Insert or update a task to mark its start."""
 
         now = self._now_ms()
@@ -109,7 +110,7 @@ class TaskStore:
         )
         cursor.connection.commit()
 
-    def update_progress(self, task_id: str, percentage: int, message: str, status: str = "RUNNING"):
+    def update_progress(self, task_id: str, percentage: int, message: str, status: str = "RUNNING") -> None:
         """Update the progress of an existing task."""
 
         now = self._now_ms()
@@ -125,7 +126,7 @@ class TaskStore:
             self.upsert_task_start(task_id, scheme_code="", data_ref="")
         cursor.connection.commit()
 
-    def finish_task(self, task_id: str, status: str, message: str = "Completed", error_message: str = ""):
+    def finish_task(self, task_id: str, status: str, message: str = "Completed", error_message: str = "") -> None:
         """Mark a task as finished."""
 
         now = self._now_ms()

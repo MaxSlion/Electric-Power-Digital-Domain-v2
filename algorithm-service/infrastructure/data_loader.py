@@ -10,13 +10,13 @@ import json
 import os
 import sqlite3
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import Any, Dict, Tuple, Optional
 from urllib.parse import parse_qs, urlparse, unquote
 
 import pandas as pd
 
 
-def load_data_ref(data_ref: str | None) -> Tuple[Any, Dict[str, Any]]:
+def load_data_ref(data_ref: Optional[str]) -> Tuple[pd.DataFrame, Dict[str, Any]]:
     """
     Resolve data_ref into an in-memory object.
 
@@ -113,11 +113,11 @@ def load_data_ref(data_ref: str | None) -> Tuple[Any, Dict[str, Any]]:
     raise ValueError(f"Unsupported data file type: {suffix}")
 
 
-def _first(values):
+def _first(values: Optional[list[str]]) -> Optional[str]:
     return values[0] if values else None
 
 
-def _try_json(payload):
+def _try_json(payload: Any) -> Any:
     if payload is None:
         return None
     if isinstance(payload, (dict, list)):

@@ -9,6 +9,7 @@ from __future__ import annotations
 import logging
 import time
 import traceback
+from typing import Any, Dict, Optional
 
 from .resource_manager import HardwareManager
 from .framework import AlgorithmRegistry, AlgorithmContext
@@ -23,11 +24,11 @@ from infrastructure.logging_config import configure_logging
 class ProgressQueueReporter:
     """Reporter that sends progress updates to a queue."""
 
-    def __init__(self, queue, status_proxy=None):
+    def __init__(self, queue: Any, status_proxy: Optional[Any] = None) -> None:
         self._queue = queue
         self._status_proxy = status_proxy
 
-    def _update_status_proxy(self, task_id, updates: dict):
+    def _update_status_proxy(self, task_id: str, updates: Dict[str, Any]) -> None:
         """Update the status proxy with the given updates."""
 
         if self._status_proxy is None:
@@ -36,7 +37,7 @@ class ProgressQueueReporter:
         current.update(updates)
         self._status_proxy[task_id] = current
 
-    def update(self, task_id, percent, message):
+    def update(self, task_id: str, percent: int, message: str) -> None:
         """Send a progress update to the queue."""
 
         payload = {
@@ -58,15 +59,15 @@ class ProgressQueueReporter:
 
 
 def _run_task_in_subprocess(
-    scheme_code,
-    task_id,
-    data_ref,
-    params,
-    reporter_target,
-    progress_queue,
-    status_proxy,
-    db_queue,
-):
+    scheme_code: str,
+    task_id: str,
+    data_ref: str,
+    params: Dict[str, Any],
+    reporter_target: Optional[str],
+    progress_queue: Any,
+    status_proxy: Optional[Any],
+    db_queue: Optional[Any],
+) -> None:
     """Run the algorithm task in a subprocess."""
 
     configure_logging()
@@ -156,12 +157,12 @@ def _run_task_in_subprocess(
 class TaskDispatcher:
     """Dispatcher for managing and executing algorithm tasks."""
 
-    def __init__(self, reporter_client, reporter_target: str | None = None):
+    def __init__(self, reporter_client: ResultReporterClient, reporter_target: Optional[str] = None) -> None:
         self.hardware = HardwareManager()
         self.reporter = reporter_client
         self.reporter_target = reporter_target
 
-    def dispatch(self, task_id, scheme_code, data_ref, params):
+    def dispatch(self, task_id: str, scheme_code: str, data_ref: str, params: Dict[str, Any]) -> None:
         """Dispatch the algorithm task to the appropriate executor."""
 
         algo = AlgorithmRegistry.get_algorithm(scheme_code)
@@ -220,7 +221,16 @@ class TaskDispatcher:
             manager.mark_finished(task_id, "FAILED", message="Failed")
             self.reporter.send_result(task_id, status="FAILED", error=err_msg)
 
-    def _safe_runner(self, algo, task_id, data_ref, params, progress_queue, status_proxy, db_queue):
+    def _safe_runner(
+        self,
+        algo: Any,
+        task_id: str,
+        data_ref: str,
+        params: Dict[str, Any],
+        progress_queue: Any,
+        status_proxy: Optional[Any],
+        db_queue: Optional[Any],
+    ) -> None:
         """Run the algorithm task safely within the current process."""
 
         logger = logging.getLogger("AlgoService")
@@ -298,7 +308,7 @@ class TaskDispatcher:
             ctx.log(logging.ERROR, "Task Failed")
             self.reporter.send_result(task_id, status="FAILED", error=err_msg)
 
-    def _report_error(self, task_id, message):
+    def _report_error(self, task_id: str, message: str) -> None:
         """Report an error for the given task."""
 
         logging.error("[Dispatcher] %s", message)

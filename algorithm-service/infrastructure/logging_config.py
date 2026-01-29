@@ -9,7 +9,7 @@ from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
 
-def configure_logging(log_dir: str = "logs", level: int = logging.INFO):
+def configure_logging(log_dir: str = "logs", level: int = logging.INFO) -> None:
     """Configure logging for the algorithm service."""
     
     Path(log_dir).mkdir(parents=True, exist_ok=True)
