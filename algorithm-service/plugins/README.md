@@ -28,7 +28,7 @@
 
 ## 3. 输入接口约定
 
-### 3.1 gRPC SubmitTask
+### 3.1 gRPC SubmitTask 接口字段：
 
 - `scheme_code`：插件唯一标识，对应 `meta_info.code`。
 - `data_ref`：数据来源引用（必须）。
@@ -46,7 +46,7 @@
 - **Redis**：
   - `redis://host:6379/0?key=some_key&type=string|hash|list`
 
-> 解析结果注入 `ctx.data`。若解析失败，任务会失败并上报错误。
+> 解析结果会自动注入 `ctx.data`。若解析失败，任务会失败并上报错误。
 
 ## 4. AlgorithmContext 规范
 
@@ -92,6 +92,37 @@
 
 参考实现：
 - [M01/WF01/m02_safety_check.py](M01/WF01/m02_safety_check.py)
+
+
+
+在开发阶段请参考以下目录结构，开发完成后将插件放置于 `plugins/` 目录下：
+
+```
+KBM/
+├─ __init__.py
+└─ WF01/
+  ├─ kbm_wf01.py          # 插件主入口
+  ├─ data/                # 测试数据
+  │  ├─ history.csv
+  │  └─ realtime_frame.csv
+  └─ features/            # 特征工程相关脚本
+    ├─ __init__.py
+    ├─ kbm_01_01_realtime_ingest.py
+    ├─ kbm_01_02_history_extract.py
+    ├─ kbm_01_03_standardize.py
+    ├─ kbm_01_04_align.py
+    ├─ kbm_01_05_mode_partition.py
+    ├─ kbm_01_06_safety_targets.py
+    ├─ kbm_01_07_constraint_catalog.py
+    ├─ kbm_01_08_feature_extract.py
+    ├─ kbm_01_09_risk_scenarios.py
+    ├─ kbm_01_10_n1_standard.py
+    ├─ kbm_01_11_sc_standard.py
+    ├─ kbm_01_12_simulation.py
+    └─ kbm_01_13_visualize.py
+```
+
+> 插件主入口在开发阶段可直接使用pandas读取测试数据，实现算法逻辑；上线时请遵循插件开发规范，从ctx.data获取数据
 
 ## 8. 禁止项
 

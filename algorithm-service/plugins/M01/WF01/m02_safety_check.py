@@ -41,6 +41,7 @@ class M02SafetyCheck(BaseAlgorithm):
           - 通过 `ctx.params` 获取可选输入参数.
           - 通过 `ctx.data` 获取服务层预加载的数据对象,类型通常为 `pandas.DataFrame` .
           - 通过 `ctx.log(level, message)` 记录日志.
+            - level 参数为日志级别,如 10 (DEBUG), 20 (INFO), 30 (WARNING), 40 (ERROR).
           - 通过 `ctx.report_progress(percentage, message)` 上报进度.
           - 返回结果必须为字典类型,禁止返回其他类型（如字符串、列表等）.
 
