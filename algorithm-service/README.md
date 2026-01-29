@@ -71,3 +71,15 @@ algorithm-service/
 任务状态会落盘到 SQLite：`algorithm-service/data/tasks.db`（主进程写入）。
 
 `GetTaskStatus(task_id)` 用于查询单个任务的状态记录。
+
+## 结果落盘
+
+每个插件执行完成后，服务会将结果 JSON 写入：
+
+- `algorithm-service/result/<task_id>.json`
+
+内容包含：
+- `task_id`
+- `status`
+- `data`（插件返回的 dict）
+- `error`（失败时的错误信息）

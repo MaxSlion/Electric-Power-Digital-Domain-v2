@@ -6,4 +6,5 @@ data/
 
 algorithm-service/logs/
 algorithm-service/**/__pycache__/
-algorithm-service/plugins/KBM
+algorithm-service/plugins/KBM/
+algorithm-service/result/
