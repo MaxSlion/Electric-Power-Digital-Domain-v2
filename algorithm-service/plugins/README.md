@@ -52,11 +52,11 @@
 
 插件入口 `execute(self, ctx)` 中可用字段：
 
-- `ctx.task_id`：任务 ID
-- `ctx.params`：业务参数（dict）
-- `ctx.data`：服务层解析后的数据对象
-  - 文件 / MySQL / Redis 读取结果
-  - 通常为 `pandas.DataFrame` 或原始 JSON
+- `ctx.task_id`：任务 ID。
+- `ctx.params`：业务参数（dict）。
+- `ctx.data`：服务层解析后的数据对象。
+  - 文件 / MySQL / Redis 读取结果。
+  - 通常为 `pandas.DataFrame` 或原始 JSON。
 
 ## 5. 进度与日志规范
 
@@ -64,12 +64,12 @@
   - level 使用标准 logging 级别：`logging.INFO / WARNING / ERROR`
 - `ctx.report_progress(percentage, message)`
   - percentage：0-100
-  - message：阶段描述
+  - message：阶段描述。
 
 建议进度切分：
-- 0-20：数据校验/预处理
-- 20-70：核心算法处理
-- 70-100：收尾与结果封装
+- 0-20：数据校验/预处理。
+- 20-70：核心算法处理。
+- 70-100：收尾与结果封装。
 
 ## 6. 返回结果规范
 
@@ -78,11 +78,11 @@
 - 不应返回 DataFrame 对象，需转为 `list[dict]` 或其他轻量结构。
 
 建议结构：
-- `run_id`：本次执行标识
+- `run_id`：本次执行标识。
 - `status`：`SUCCESS` / `FAILED`
-- `payload`：核心结果
-- `metrics`：可选，性能或质量指标
-- `artifacts_keys`：可选，输出字段列表
+- `payload`：核心结果。
+- `metrics`：可选，性能或质量指标。
+- `artifacts_keys`：可选，输出字段列表。
 
 ## 7. 标准插件模板（参考结构）
 
@@ -122,7 +122,7 @@ KBM/
     └─ kbm_01_13_visualize.py
 ```
 
-> 插件主入口在开发阶段可直接使用pandas读取测试数据，实现算法逻辑；上线时请遵循插件开发规范，从ctx.data获取数据
+> 插件主入口在开发阶段可直接使用pandas读取测试数据，实现算法逻辑；上线时请遵循插件开发规范，从ctx.data获取数据。
 
 ## 8. 禁止项
 

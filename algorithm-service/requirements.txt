@@ -1,9 +1,12 @@
+# Requirements for Algorithm Service
 grpcio
 grpcio-tools
 protobuf
-torch
 pandas
-sqlalchemy
-pymysql
-redis
 numpy
+
+# Requirements for plugins
+# torch
+# sqlalchemy
+# pymysql
+# redis

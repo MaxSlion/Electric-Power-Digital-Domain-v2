@@ -19,10 +19,23 @@ algorithm-service/
 
 1. 安装依赖：
    - 建议使用虚拟环境。
-   - 安装 `requirements.txt`。
+   - 安装 `requirements.txt` (若你的 plugin 需要安装当前 requirements 以外的内容，请添加)。
 
 2. 生成 gRPC 代码：
    - 使用 `grpcio-tools` 将 [proto/algorithm.proto](algorithm-service/proto/algorithm.proto) 编译为 `*_pb2.py` 文件。
+   
+```
+python.exe -m grpc_tools.protoc -I "D:/Source/Electric-Power-Digital-Domain v2/algorithm-service/proto" --python_out "D:/Source/Electric-Power-Digital-Domain v2/algorithm-service/proto" --grpc_python_out "D:/Source/Electric-Power-Digital-Domain v2/algorithm-service/proto" "D:/Source/Electric-Power-Digital-Domain v2/algorithm-service/proto/algorithm.proto"
+```
+
+3. 调用plugin测试:
+   - 请按照插件开发规范 [README.md](plugins/README.md) 编写插件，开发结束后放置于 `plugins/` 目录下。
+   - 使用 BloomRPC 打开 [proto/algorithm.proto](algorithm-service/proto/algorithm.proto) 文件，调用 `GetAvailableSchemes` 接口查看已加载的插件。
+   - 调用 `SubmitTask` 接口提交任务，填写 `task_id`、`scheme_code`、`data_ref` 与 `params_json` 字段。
+      - `task_id`：自定义唯一任务 ID, 本地测试可使用任意字符串。
+      - `scheme_code`：插件唯一标识，对应 `meta_info.code`。
+   - 调用 `GetTaskStatus` ，填写 `task_id` 字段查看任务状态。
+   - 查看 `result/` 目录下的 `<task_id>.json` 文件获取任务结果。
 
 3. 运行服务：
    - 直接运行 [main.py](main.py) 会启动本地调度器并加载插件。
