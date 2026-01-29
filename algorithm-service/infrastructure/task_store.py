@@ -44,7 +44,9 @@ class TaskStore:
                 if "locked" not in str(exc).lower() or attempt >= retries:
                     raise
                 time.sleep(0.05 * (2**attempt))
-        raise last_exc
+        if last_exc is not None:
+            raise last_exc
+        raise RuntimeError("Failed to execute SQL statement after retries.")
 
     def _ensure_db(self):
         """Ensure the tasks table exists in the database."""

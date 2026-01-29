@@ -44,6 +44,8 @@ class ProgressManager:
         """Get the shared status store."""
 
         self._get_manager()
+        if self._status is None:
+            self._status = self._manager.dict() if self._manager else {}
         return self._status
 
     def _update_status(self, task_id, updates: dict):
@@ -186,9 +188,11 @@ class ProgressManager:
             self._result_sink.send_result(task_id, status=status, data=data, error=error)
 
     def _get_db_queue(self):
-        self._get_manager()
+        """Get or create the shared DB writer queue."""
+
+        manager = self._get_manager()
         if self._db_queue is None:
-            self._db_queue = self._manager.Queue()
+            self._db_queue = manager.Queue()
         return self._db_queue
 
     def start_db_writer(self):

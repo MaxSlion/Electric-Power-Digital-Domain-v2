@@ -28,7 +28,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         """Returns a list of available algorithm schemes."""
 
         schemes = [
-            algorithm_pb2.SchemeList.Scheme(
+            algorithm_pb2.SchemeList.Scheme( # type: ignore
                 code=meta["code"],
                 name=meta["name"],
                 resource_type=meta.get("resource_type", "CPU"),
@@ -37,7 +37,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
             )
             for meta in AlgorithmRegistry.get_all_schemes()
         ]
-        return algorithm_pb2.SchemeList(schemes=schemes)
+        return algorithm_pb2.SchemeList(schemes=schemes) # type: ignore
 
     def SubmitTask(self, request, context):
         """Submits a new algorithm task for processing."""
@@ -47,7 +47,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         except json.JSONDecodeError:
             params = {}
         self.dispatcher.dispatch(request.task_id, request.scheme_code, request.data_ref, params)
-        return algorithm_pb2.TaskSubmissionResponse(accepted=True, message="Task accepted")
+        return algorithm_pb2.TaskSubmissionResponse(accepted=True, message="Task accepted") # type: ignore
 
     def CheckHealth(self, request, context):
         """Checks the health status of the service."""
@@ -56,7 +56,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
             "device": self.hardware.device_info,
             "gpu": "available" if self.hardware.has_gpu else "none",
         }
-        return algorithm_pb2.HealthStatus(status=algorithm_pb2.HealthStatus.SERVING, metrics=metrics)
+        return algorithm_pb2.HealthStatus(status=algorithm_pb2.HealthStatus.SERVING, metrics=metrics) # type: ignore
 
     def WatchTaskProgress(self, request, context):
         """Streams progress updates for a given task."""
@@ -66,7 +66,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         try:
             while True:
                 data = q.get(timeout=60)
-                yield algorithm_pb2.ProgressUpdate(**data)
+                yield algorithm_pb2.ProgressUpdate(**data) # type: ignore
                 status = manager.get_task(request.task_id).get("status")
                 if data["percentage"] >= 100 or status in ("SUCCESS", "FAILED"):
                     break
@@ -79,7 +79,7 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
         """Returns a list of known tasks and their last status."""
 
         tasks = [
-            algorithm_pb2.TaskStatus(
+            algorithm_pb2.TaskStatus( # type: ignore
                 task_id=item.get("task_id", ""),
                 scheme_code=item.get("scheme_code", ""),
                 status=item.get("status", ""),
@@ -90,13 +90,13 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
             )
             for item in TaskStore().list_tasks()
         ]
-        return algorithm_pb2.TaskList(tasks=tasks)
+        return algorithm_pb2.TaskList(tasks=tasks) # type: ignore
 
     def GetTaskStatus(self, request, context):
         """Returns the status of a specific task from the task store."""
 
         item = TaskStore().get_task(request.task_id)
-        return algorithm_pb2.TaskStatus(
+        return algorithm_pb2.TaskStatus( # type: ignore
             task_id=item.get("task_id", ""),
             scheme_code=item.get("scheme_code", ""),
             status=item.get("status", ""),

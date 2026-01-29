@@ -178,6 +178,9 @@ class TaskDispatcher:
         TaskStore().upsert_task_start(task_id, scheme_code, data_ref=data_ref)
 
         executor = self.hardware.get_executor(algo.meta_info["resource_type"])
+        if executor is None:
+            self._report_error(task_id, "Executor not available for resource type")
+            return
 
         try:
             if executor is self.hardware.cpu_pool:
@@ -193,7 +196,16 @@ class TaskDispatcher:
                     db_queue,
                 )
             else:
-                executor.submit(self._safe_runner, algo, task_id, data_ref, params, progress_queue, status_proxy, db_queue)
+                executor.submit(
+                    self._safe_runner,
+                    algo,
+                    task_id,
+                    data_ref,
+                    params,
+                    progress_queue,
+                    status_proxy,
+                    db_queue
+                )
         except Exception as exc:
             err_msg = str(exc)
             progress_queue.put(
