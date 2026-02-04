@@ -91,15 +91,18 @@ class ProgressManager:
         """Record progress in the status store."""
 
         current = self.get_task(task_id)
-        if current.get("status") in ("SUCCESS", "FAILED"):
+        if current.get("status") in ("SUCCESS", "FAILED", "CANCELLED"):
             return
         now = int(time.time() * 1000)
+        status = "RUNNING"
+        if current.get("status") == "CANCEL_REQUESTED":
+            status = "CANCEL_REQUESTED"
         self._update_status(
             task_id,
             {
                 "percentage": int(percent),
                 "message": message,
-                "status": "RUNNING",
+                "status": status,
                 "updated_at": now,
             },
         )
@@ -117,6 +120,25 @@ class ProgressManager:
                 "updated_at": now,
             },
         )
+
+    def request_cancel(self, task_id: str, message: str = "Cancel requested") -> None:
+        """Mark a task as cancel requested."""
+
+        now = int(time.time() * 1000)
+        self._update_status(
+            task_id,
+            {
+                "message": message,
+                "status": "CANCEL_REQUESTED",
+                "updated_at": now,
+            },
+        )
+
+    def is_cancel_requested(self, task_id: str) -> bool:
+        """Check if a task has cancellation requested."""
+
+        current = self.get_task(task_id)
+        return current.get("status") in ("CANCEL_REQUESTED", "CANCELLED")
 
     def get_task(self, task_id: str) -> Dict[str, Any]:
         """Return the last known status for a task."""

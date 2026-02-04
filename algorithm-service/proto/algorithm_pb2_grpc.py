@@ -26,7 +26,8 @@ if _version_not_supported:
 
 
 class AlgoControlServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """AlgoControlService defines the API for controlling algorithm execution
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -64,43 +65,86 @@ class AlgoControlServiceStub(object):
                 request_serializer=algorithm__pb2.TaskIdentity.SerializeToString,
                 response_deserializer=algorithm__pb2.TaskStatus.FromString,
                 _registered_method=True)
+        self.CancelTask = channel.unary_unary(
+                '/algorithm.AlgoControlService/CancelTask',
+                request_serializer=algorithm__pb2.CancelRequest.SerializeToString,
+                response_deserializer=algorithm__pb2.CancelResponse.FromString,
+                _registered_method=True)
+        self.UploadData = channel.stream_unary(
+                '/algorithm.AlgoControlService/UploadData',
+                request_serializer=algorithm__pb2.DataChunk.SerializeToString,
+                response_deserializer=algorithm__pb2.UploadResponse.FromString,
+                _registered_method=True)
+        self.DownloadResult = channel.unary_stream(
+                '/algorithm.AlgoControlService/DownloadResult',
+                request_serializer=algorithm__pb2.TaskIdentity.SerializeToString,
+                response_deserializer=algorithm__pb2.DataChunk.FromString,
+                _registered_method=True)
 
 
 class AlgoControlServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """AlgoControlService defines the API for controlling algorithm execution
+    """
 
     def GetAvailableSchemes(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """GetAvailableSchemes returns all registered algorithm schemes
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def SubmitTask(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """SubmitTask submits a new algorithm task for processing
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def CheckHealth(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """CheckHealth returns the health status of the algorithm service
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def WatchTaskProgress(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """WatchTaskProgress streams real-time progress updates for a task
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def ListTasks(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """ListTasks returns all known tasks and their statuses
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
     def GetTaskStatus(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """GetTaskStatus returns the current status of a specific task
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def CancelTask(self, request, context):
+        """CancelTask requests cancellation of a task
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def UploadData(self, request_iterator, context):
+        """UploadData streams large data files to the algorithm service
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def DownloadResult(self, request, context):
+        """DownloadResult streams large result files from the algorithm service
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -138,6 +182,21 @@ def add_AlgoControlServiceServicer_to_server(servicer, server):
                     request_deserializer=algorithm__pb2.TaskIdentity.FromString,
                     response_serializer=algorithm__pb2.TaskStatus.SerializeToString,
             ),
+            'CancelTask': grpc.unary_unary_rpc_method_handler(
+                    servicer.CancelTask,
+                    request_deserializer=algorithm__pb2.CancelRequest.FromString,
+                    response_serializer=algorithm__pb2.CancelResponse.SerializeToString,
+            ),
+            'UploadData': grpc.stream_unary_rpc_method_handler(
+                    servicer.UploadData,
+                    request_deserializer=algorithm__pb2.DataChunk.FromString,
+                    response_serializer=algorithm__pb2.UploadResponse.SerializeToString,
+            ),
+            'DownloadResult': grpc.unary_stream_rpc_method_handler(
+                    servicer.DownloadResult,
+                    request_deserializer=algorithm__pb2.TaskIdentity.FromString,
+                    response_serializer=algorithm__pb2.DataChunk.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'algorithm.AlgoControlService', rpc_method_handlers)
@@ -147,7 +206,8 @@ def add_AlgoControlServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class AlgoControlService(object):
-    """Missing associated documentation comment in .proto file."""
+    """AlgoControlService defines the API for controlling algorithm execution
+    """
 
     @staticmethod
     def GetAvailableSchemes(request,
@@ -311,9 +371,91 @@ class AlgoControlService(object):
             metadata,
             _registered_method=True)
 
+    @staticmethod
+    def CancelTask(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/algorithm.AlgoControlService/CancelTask',
+            algorithm__pb2.CancelRequest.SerializeToString,
+            algorithm__pb2.CancelResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def UploadData(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_unary(
+            request_iterator,
+            target,
+            '/algorithm.AlgoControlService/UploadData',
+            algorithm__pb2.DataChunk.SerializeToString,
+            algorithm__pb2.UploadResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def DownloadResult(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_stream(
+            request,
+            target,
+            '/algorithm.AlgoControlService/DownloadResult',
+            algorithm__pb2.TaskIdentity.SerializeToString,
+            algorithm__pb2.DataChunk.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
 
 class ResultReceiverServiceStub(object):
-    """Missing associated documentation comment in .proto file."""
+    """ResultReceiverService receives results from the algorithm service
+    """
 
     def __init__(self, channel):
         """Constructor.
@@ -326,13 +468,27 @@ class ResultReceiverServiceStub(object):
                 request_serializer=algorithm__pb2.TaskResult.SerializeToString,
                 response_deserializer=algorithm__pb2.Ack.FromString,
                 _registered_method=True)
+        self.StreamResult = channel.stream_unary(
+                '/algorithm.ResultReceiverService/StreamResult',
+                request_serializer=algorithm__pb2.ResultChunk.SerializeToString,
+                response_deserializer=algorithm__pb2.Ack.FromString,
+                _registered_method=True)
 
 
 class ResultReceiverServiceServicer(object):
-    """Missing associated documentation comment in .proto file."""
+    """ResultReceiverService receives results from the algorithm service
+    """
 
     def ReportResult(self, request, context):
-        """Missing associated documentation comment in .proto file."""
+        """ReportResult reports the completion of a task
+        """
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def StreamResult(self, request_iterator, context):
+        """StreamResult streams large result data back to the backend
+        """
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
@@ -345,6 +501,11 @@ def add_ResultReceiverServiceServicer_to_server(servicer, server):
                     request_deserializer=algorithm__pb2.TaskResult.FromString,
                     response_serializer=algorithm__pb2.Ack.SerializeToString,
             ),
+            'StreamResult': grpc.stream_unary_rpc_method_handler(
+                    servicer.StreamResult,
+                    request_deserializer=algorithm__pb2.ResultChunk.FromString,
+                    response_serializer=algorithm__pb2.Ack.SerializeToString,
+            ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
             'algorithm.ResultReceiverService', rpc_method_handlers)
@@ -354,7 +515,8 @@ def add_ResultReceiverServiceServicer_to_server(servicer, server):
 
  # This class is part of an EXPERIMENTAL API.
 class ResultReceiverService(object):
-    """Missing associated documentation comment in .proto file."""
+    """ResultReceiverService receives results from the algorithm service
+    """
 
     @staticmethod
     def ReportResult(request,
@@ -372,6 +534,33 @@ class ResultReceiverService(object):
             target,
             '/algorithm.ResultReceiverService/ReportResult',
             algorithm__pb2.TaskResult.SerializeToString,
+            algorithm__pb2.Ack.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def StreamResult(request_iterator,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.stream_unary(
+            request_iterator,
+            target,
+            '/algorithm.ResultReceiverService/StreamResult',
+            algorithm__pb2.ResultChunk.SerializeToString,
             algorithm__pb2.Ack.FromString,
             options,
             channel_credentials,

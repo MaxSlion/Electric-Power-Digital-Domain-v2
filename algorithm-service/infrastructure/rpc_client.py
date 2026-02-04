@@ -73,9 +73,16 @@ class ResultReporterClient:
         except Exception as exc:
             logging.error("[Reporter] Failed to write result file: %s", exc)
 
+        if status == "SUCCESS":
+            result_status = algorithm_pb2.TaskResult.SUCCESS
+        elif status == "CANCELLED":
+            result_status = algorithm_pb2.TaskResult.CANCELLED
+        else:
+            result_status = algorithm_pb2.TaskResult.FAILED
+
         payload = algorithm_pb2.TaskResult( # type: ignore
             task_id=task_id,
-            status=algorithm_pb2.TaskResult.SUCCESS if status == "SUCCESS" else algorithm_pb2.TaskResult.FAILED, # type: ignore
+            status=result_status, # type: ignore
             result_json=json.dumps(data, ensure_ascii=False, default=_json_safe) if data is not None else "",
             error_message=error or "",
             log_path=str(result_path),

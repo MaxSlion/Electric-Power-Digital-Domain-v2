@@ -107,6 +107,17 @@ class AlgoControlService(algorithm_pb2_grpc.AlgoControlServiceServicer):
             updated_at=int(item.get("updated_at", 0)),
         )
 
+    def CancelTask(self, request: Any, context: grpc.ServicerContext) -> Any:
+        """Request cancellation of a task."""
+
+        force = getattr(request, "force", False)
+        resp = self.dispatcher.cancel_task(request.task_id, force=force)
+        return algorithm_pb2.CancelResponse( # type: ignore
+            accepted=bool(resp.get("accepted")),
+            message=str(resp.get("message", "")),
+            status=str(resp.get("status", "")),
+        )
+
 
 def serve(dispatcher: Any, host: str = "0.0.0.0", port: int = 50051) -> grpc.Server:
     """Starts the gRPC server for the AlgoControlService."""
