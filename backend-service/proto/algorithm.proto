@@ -1,0 +1,143 @@
+syntax = "proto3";
+package algorithm;
+
+option go_package = "github.com/electric-power/backend-service/proto;proto";
+
+// AlgoControlService defines the API for controlling algorithm execution
+service AlgoControlService {
+    // GetAvailableSchemes returns all registered algorithm schemes
+    rpc GetAvailableSchemes (Empty) returns (SchemeList);
+    
+    // SubmitTask submits a new algorithm task for processing
+    rpc SubmitTask (TaskRequest) returns (TaskSubmissionResponse);
+    
+    // CheckHealth returns the health status of the algorithm service
+    rpc CheckHealth (Empty) returns (HealthStatus);
+    
+    // WatchTaskProgress streams real-time progress updates for a task
+    rpc WatchTaskProgress (TaskIdentity) returns (stream ProgressUpdate);
+    
+    // ListTasks returns all known tasks and their statuses
+    rpc ListTasks (Empty) returns (TaskList);
+    
+    // GetTaskStatus returns the current status of a specific task
+    rpc GetTaskStatus (TaskIdentity) returns (TaskStatus);
+
+    // CancelTask requests cancellation of a task
+    rpc CancelTask (CancelRequest) returns (CancelResponse);
+}
+
+// ResultReceiverService receives results from the algorithm service
+service ResultReceiverService {
+    // ReportResult reports the completion of a task
+    rpc ReportResult (TaskResult) returns (Ack);
+}
+
+message SchemeList {
+    message Scheme {
+        string model = 1;
+        string code = 2;
+        string name = 3;
+        string class_name = 4;
+        string resource_type = 5;
+        string description = 6;
+        repeated string required_params = 7;
+    }
+    repeated Scheme schemes = 1;
+}
+
+message TaskRequest {
+    string task_id = 1;
+    string scheme_code = 2;
+    string data_ref = 3;
+    string params_json = 4;
+    int32 priority = 5;           // Task priority (higher = more urgent)
+    int32 timeout_seconds = 6;    // Maximum execution time
+    string callback_url = 7;      // Optional HTTP callback URL
+}
+
+message TaskSubmissionResponse {
+    bool accepted = 1;
+    string message = 2;
+    int32 queue_position = 3;     // Position in processing queue
+    int64 estimated_start = 4;    // Estimated start timestamp
+}
+
+message CancelResponse {
+    bool accepted = 1;
+    string message = 2;
+    string status = 3;            // Current status after cancel request
+}
+
+message CancelRequest {
+    string task_id = 1;
+    bool force = 2;               // If true, immediately force-kill the process
+}
+
+message ProgressUpdate {
+    string task_id = 1;
+    int32 percentage = 2;
+    string message = 3;
+    int64 timestamp = 4;
+    string stage = 5;             // Current processing stage
+    map<string, string> metrics = 6;  // Real-time metrics
+}
+
+message TaskResult {
+    string task_id = 1;
+    enum Status {
+        SUCCESS = 0;
+        FAILED = 1;
+        CANCELLED = 2;
+        TIMEOUT = 3;
+    }
+    Status status = 2;
+    string result_json = 3;
+    string error_message = 4;
+    string log_path = 5;
+    int64 duration_ms = 6;        // Actual execution duration
+    map<string, string> metrics = 7;
+}
+
+// DataChunk for streaming large files
+message HealthStatus {
+    enum ServingStatus { 
+        UNKNOWN = 0; 
+        SERVING = 1; 
+        NOT_SERVING = 2; 
+    }
+    ServingStatus status = 1;
+    map<string, string> metrics = 2;
+    int32 active_tasks = 3;
+    int32 queue_length = 4;
+    double cpu_usage = 5;
+    double memory_usage = 6;
+    bool gpu_available = 7;
+}
+
+message Empty {}
+message TaskIdentity { string task_id = 1; }
+message Ack { 
+    bool success = 1; 
+    string message = 2;
+}
+
+message TaskStatus {
+    string task_id = 1;
+    string scheme_code = 2;
+    string status = 3;
+    int32 percentage = 4;
+    string message = 5;
+    string error_message = 6;
+    int64 created_at = 7;
+    int64 updated_at = 8;
+    int64 finished_at = 9;
+}
+
+message TaskList {
+    repeated TaskStatus tasks = 1;
+    int32 total = 2;
+    int32 pending = 3;
+    int32 running = 4;
+    int32 completed = 5;
+}
