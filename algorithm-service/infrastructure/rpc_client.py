@@ -23,7 +23,11 @@ class ResultReporterClient:
         if grpc_stub is not None:
             self._stub = grpc_stub
         elif target:
-            self._channel = grpc.insecure_channel(target)
+            options = [
+                ("grpc.max_send_message_length", 100 * 1024 * 1024),
+                ("grpc.max_receive_message_length", 100 * 1024 * 1024),
+            ]
+            self._channel = grpc.insecure_channel(target, options=options)
             self._stub = algorithm_pb2_grpc.ResultReceiverServiceStub(self._channel)
         else:
             self._stub = None
@@ -80,10 +84,12 @@ class ResultReporterClient:
         else:
             result_status = algorithm_pb2.TaskResult.FAILED
 
+        result_json = json.dumps(data, ensure_ascii=False, default=_json_safe) if data is not None else ""
+
         payload = algorithm_pb2.TaskResult( # type: ignore
             task_id=task_id,
             status=result_status, # type: ignore
-            result_json=json.dumps(data, ensure_ascii=False, default=_json_safe) if data is not None else "",
+            result_json=result_json,
             error_message=error or "",
             log_path=str(result_path),
         )
@@ -91,6 +97,7 @@ class ResultReporterClient:
 
         if self._stub is None:
             return
+
         try:
             self._stub.ReportResult(payload)
         except Exception as exc:

@@ -23,21 +23,12 @@ service AlgoControlService {
 
     // CancelTask requests cancellation of a task
     rpc CancelTask (CancelRequest) returns (CancelResponse);
-    
-    // UploadData streams large data files to the algorithm service
-    rpc UploadData (stream DataChunk) returns (UploadResponse);
-    
-    // DownloadResult streams large result files from the algorithm service
-    rpc DownloadResult (TaskIdentity) returns (stream DataChunk);
 }
 
 // ResultReceiverService receives results from the algorithm service
 service ResultReceiverService {
     // ReportResult reports the completion of a task
     rpc ReportResult (TaskResult) returns (Ack);
-    
-    // StreamResult streams large result data back to the backend
-    rpc StreamResult (stream ResultChunk) returns (Ack);
 }
 
 message SchemeList {
@@ -107,31 +98,6 @@ message TaskResult {
 }
 
 // DataChunk for streaming large files
-message DataChunk {
-    string task_id = 1;
-    string filename = 2;
-    bytes data = 3;               // Chunk data (max 1MB recommended)
-    int64 offset = 4;             // Offset in file
-    int64 total_size = 5;         // Total file size
-    bool is_last = 6;             // Is this the final chunk?
-    string checksum = 7;          // Checksum for verification (MD5/SHA256)
-}
-
-message UploadResponse {
-    bool success = 1;
-    string data_ref = 2;          // Reference ID for the uploaded data
-    string message = 3;
-}
-
-message ResultChunk {
-    string task_id = 1;
-    string key = 2;               // Result key (e.g., "violations", "predictions")
-    bytes data = 3;               // Chunk data
-    int64 chunk_index = 4;
-    int64 total_chunks = 5;
-    string content_type = 6;      // MIME type (application/json, text/csv, etc.)
-}
-
 message HealthStatus {
     enum ServingStatus { 
         UNKNOWN = 0; 

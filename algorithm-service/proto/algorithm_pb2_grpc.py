@@ -70,16 +70,6 @@ class AlgoControlServiceStub(object):
                 request_serializer=algorithm__pb2.CancelRequest.SerializeToString,
                 response_deserializer=algorithm__pb2.CancelResponse.FromString,
                 _registered_method=True)
-        self.UploadData = channel.stream_unary(
-                '/algorithm.AlgoControlService/UploadData',
-                request_serializer=algorithm__pb2.DataChunk.SerializeToString,
-                response_deserializer=algorithm__pb2.UploadResponse.FromString,
-                _registered_method=True)
-        self.DownloadResult = channel.unary_stream(
-                '/algorithm.AlgoControlService/DownloadResult',
-                request_serializer=algorithm__pb2.TaskIdentity.SerializeToString,
-                response_deserializer=algorithm__pb2.DataChunk.FromString,
-                _registered_method=True)
 
 
 class AlgoControlServiceServicer(object):
@@ -135,20 +125,6 @@ class AlgoControlServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def UploadData(self, request_iterator, context):
-        """UploadData streams large data files to the algorithm service
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
-    def DownloadResult(self, request, context):
-        """DownloadResult streams large result files from the algorithm service
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_AlgoControlServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -186,16 +162,6 @@ def add_AlgoControlServiceServicer_to_server(servicer, server):
                     servicer.CancelTask,
                     request_deserializer=algorithm__pb2.CancelRequest.FromString,
                     response_serializer=algorithm__pb2.CancelResponse.SerializeToString,
-            ),
-            'UploadData': grpc.stream_unary_rpc_method_handler(
-                    servicer.UploadData,
-                    request_deserializer=algorithm__pb2.DataChunk.FromString,
-                    response_serializer=algorithm__pb2.UploadResponse.SerializeToString,
-            ),
-            'DownloadResult': grpc.unary_stream_rpc_method_handler(
-                    servicer.DownloadResult,
-                    request_deserializer=algorithm__pb2.TaskIdentity.FromString,
-                    response_serializer=algorithm__pb2.DataChunk.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -398,60 +364,6 @@ class AlgoControlService(object):
             metadata,
             _registered_method=True)
 
-    @staticmethod
-    def UploadData(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(
-            request_iterator,
-            target,
-            '/algorithm.AlgoControlService/UploadData',
-            algorithm__pb2.DataChunk.SerializeToString,
-            algorithm__pb2.UploadResponse.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def DownloadResult(request,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.unary_stream(
-            request,
-            target,
-            '/algorithm.AlgoControlService/DownloadResult',
-            algorithm__pb2.TaskIdentity.SerializeToString,
-            algorithm__pb2.DataChunk.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
 
 class ResultReceiverServiceStub(object):
     """ResultReceiverService receives results from the algorithm service
@@ -468,11 +380,6 @@ class ResultReceiverServiceStub(object):
                 request_serializer=algorithm__pb2.TaskResult.SerializeToString,
                 response_deserializer=algorithm__pb2.Ack.FromString,
                 _registered_method=True)
-        self.StreamResult = channel.stream_unary(
-                '/algorithm.ResultReceiverService/StreamResult',
-                request_serializer=algorithm__pb2.ResultChunk.SerializeToString,
-                response_deserializer=algorithm__pb2.Ack.FromString,
-                _registered_method=True)
 
 
 class ResultReceiverServiceServicer(object):
@@ -486,24 +393,12 @@ class ResultReceiverServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
-    def StreamResult(self, request_iterator, context):
-        """StreamResult streams large result data back to the backend
-        """
-        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
-        context.set_details('Method not implemented!')
-        raise NotImplementedError('Method not implemented!')
-
 
 def add_ResultReceiverServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
             'ReportResult': grpc.unary_unary_rpc_method_handler(
                     servicer.ReportResult,
                     request_deserializer=algorithm__pb2.TaskResult.FromString,
-                    response_serializer=algorithm__pb2.Ack.SerializeToString,
-            ),
-            'StreamResult': grpc.stream_unary_rpc_method_handler(
-                    servicer.StreamResult,
-                    request_deserializer=algorithm__pb2.ResultChunk.FromString,
                     response_serializer=algorithm__pb2.Ack.SerializeToString,
             ),
     }
@@ -534,33 +429,6 @@ class ResultReceiverService(object):
             target,
             '/algorithm.ResultReceiverService/ReportResult',
             algorithm__pb2.TaskResult.SerializeToString,
-            algorithm__pb2.Ack.FromString,
-            options,
-            channel_credentials,
-            insecure,
-            call_credentials,
-            compression,
-            wait_for_ready,
-            timeout,
-            metadata,
-            _registered_method=True)
-
-    @staticmethod
-    def StreamResult(request_iterator,
-            target,
-            options=(),
-            channel_credentials=None,
-            call_credentials=None,
-            insecure=False,
-            compression=None,
-            wait_for_ready=None,
-            timeout=None,
-            metadata=None):
-        return grpc.experimental.stream_unary(
-            request_iterator,
-            target,
-            '/algorithm.ResultReceiverService/StreamResult',
-            algorithm__pb2.ResultChunk.SerializeToString,
             algorithm__pb2.Ack.FromString,
             options,
             channel_credentials,
