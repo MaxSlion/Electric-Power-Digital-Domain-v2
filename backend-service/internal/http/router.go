@@ -102,6 +102,65 @@ func NewRouterWithConfig(handler *Handler, hub *ws.Hub, cache *storage.RedisCach
 			system.GET("/health", handler.HealthCheck)
 			system.GET("/stats", handler.GetStats)
 		}
+
+		// ============================================================
+		// Module-specific routes: KBM, SCM, STM
+		// Each module has: schemes, workflows, and dynamic workflow job endpoints
+		// Workflows are dynamically discovered from algorithm-service
+		// ============================================================
+
+		// KBM (Knowledge Base Management) Module
+		kbm := v1.Group("/kbm")
+		{
+			kbm.GET("/schemes", handler.GetSchemesForModule("KBM"))
+			kbm.GET("/workflows", handler.GetModuleWorkflows("KBM"))
+			kbm.GET("/jobs", handler.ListModuleJobs("KBM"))
+			kbm.GET("/jobs/:id", handler.GetJob)
+			kbm.GET("/jobs/:id/result", handler.GetJobResult)
+			kbm.POST("/jobs/:id/cancel", handler.CancelJob)
+
+			// Dynamic workflow job submission: /api/v1/kbm/:workflow/jobs
+			// Supports any workflow discovered from algorithm-service (WF01, WF02, WF03, etc.)
+			if cache != nil {
+				kbm.POST("/:workflow/jobs", middleware.Idempotency(cache), handler.SubmitDynamicWorkflowJob("KBM"))
+			} else {
+				kbm.POST("/:workflow/jobs", handler.SubmitDynamicWorkflowJob("KBM"))
+			}
+		}
+
+		// SCM (Safety Check Module) Module
+		scm := v1.Group("/scm")
+		{
+			scm.GET("/schemes", handler.GetSchemesForModule("SCM"))
+			scm.GET("/workflows", handler.GetModuleWorkflows("SCM"))
+			scm.GET("/jobs", handler.ListModuleJobs("SCM"))
+			scm.GET("/jobs/:id", handler.GetJob)
+			scm.GET("/jobs/:id/result", handler.GetJobResult)
+			scm.POST("/jobs/:id/cancel", handler.CancelJob)
+
+			if cache != nil {
+				scm.POST("/:workflow/jobs", middleware.Idempotency(cache), handler.SubmitDynamicWorkflowJob("SCM"))
+			} else {
+				scm.POST("/:workflow/jobs", handler.SubmitDynamicWorkflowJob("SCM"))
+			}
+		}
+
+		// STM (Simulation Twin Module) Module
+		stm := v1.Group("/stm")
+		{
+			stm.GET("/schemes", handler.GetSchemesForModule("STM"))
+			stm.GET("/workflows", handler.GetModuleWorkflows("STM"))
+			stm.GET("/jobs", handler.ListModuleJobs("STM"))
+			stm.GET("/jobs/:id", handler.GetJob)
+			stm.GET("/jobs/:id/result", handler.GetJobResult)
+			stm.POST("/jobs/:id/cancel", handler.CancelJob)
+
+			if cache != nil {
+				stm.POST("/:workflow/jobs", middleware.Idempotency(cache), handler.SubmitDynamicWorkflowJob("STM"))
+			} else {
+				stm.POST("/:workflow/jobs", handler.SubmitDynamicWorkflowJob("STM"))
+			}
+		}
 	}
 
 	// WebSocket endpoint for real-time progress updates

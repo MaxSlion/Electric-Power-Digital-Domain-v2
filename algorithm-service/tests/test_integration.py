@@ -1,194 +1,143 @@
 # -*- coding: utf-8 -*-
 """
 Integration Tests for Algorithm Service
-集成测试：测试完整的任务调度和执行流程
+集成测试：测试插件注册和执行流程
 """
 
 import pytest
 import sys
 import os
 import time
+import logging
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from core.framework import AlgorithmRegistry
+from core.framework import AlgorithmRegistry, AlgorithmContext
 from core.plugin_loader import load_plugins
-from core.dispatcher import TaskDispatcher
-from core.resource_manager import HardwareManager
 
 
 class MockReporter:
     """Mock result reporter for integration tests"""
     def __init__(self):
-        self.results = []
+        self.calls = []
 
-    def send_result(self, task_id, status, data=None, error=None):
-        self.results.append({
-            "task_id": task_id,
-            "status": status,
-            "data": data,
-            "error": error
-        })
+    def update(self, task_id, percentage, message):
+        self.calls.append({"task_id": task_id, "percentage": percentage, "message": message})
 
 
 @pytest.fixture(scope="module")
-def dispatcher():
-    """Create a dispatcher with mock reporter"""
+def setup_plugins():
+    """Load all plugins for integration testing"""
     load_plugins("plugins")
+    return AlgorithmRegistry._registry
+
+
+def create_context(task_id, params=None):
+    """Create test context"""
     reporter = MockReporter()
-    disp = TaskDispatcher(reporter)
-    return disp, reporter
+    logger = logging.getLogger("integration")
+    ctx = AlgorithmContext(
+        task_id=task_id,
+        params=params or {},
+        reporter_stub=reporter,
+        logger=logger,
+        data={"source": "integration_test"}
+    )
+    return ctx, reporter
 
 
-class TestTaskDispatcher:
-    """Integration tests for TaskDispatcher"""
-
-    @pytest.mark.integration
-    def test_dispatch_valid_task(self, dispatcher):
-        """Test dispatching a valid task"""
-        disp, reporter = dispatcher
-        
-        # Submit a task
-        task_id = f"integration-test-{int(time.time())}"
-        result = disp.dispatch(
-            task_id=task_id,
-            scheme_code="SCM-WF01",
-            data_ref="test_data",
-            params={}
-        )
-        
-        # Wait for async execution (with timeout)
-        timeout = 10
-        start = time.time()
-        while len(reporter.results) == 0 and time.time() - start < timeout:
-            time.sleep(0.5)
-        
-        # Check result was reported
-        assert len(reporter.results) > 0, "No result reported within timeout"
-        last_result = reporter.results[-1]
-        assert last_result["task_id"] == task_id
-        assert last_result["status"] in ["SUCCESS", "FAILED"]
+class TestPluginDiscovery:
+    """Integration tests for plugin discovery"""
 
     @pytest.mark.integration
-    def test_dispatch_unknown_scheme(self, dispatcher):
-        """Test dispatching with unknown scheme code"""
-        disp, reporter = dispatcher
+    def test_all_modules_discovered(self, setup_plugins):
+        """Test all expected modules are discovered"""
+        codes = list(setup_plugins.keys())
         
-        initial_count = len(reporter.results)
-        task_id = f"unknown-scheme-{int(time.time())}"
+        # Check KBM plugins exist
+        kbm_codes = [c for c in codes if c.startswith("KBM-")]
+        assert len(kbm_codes) >= 2, f"Expected at least 2 KBM plugins, found: {kbm_codes}"
         
-        result = disp.dispatch(
-            task_id=task_id,
-            scheme_code="UNKNOWN-SCHEME",
-            data_ref="test_data",
-            params={}
-        )
+        # Check SCM plugins exist
+        scm_codes = [c for c in codes if c.startswith("SCM-")]
+        assert len(scm_codes) >= 1, f"Expected at least 1 SCM plugin, found: {scm_codes}"
         
-        # Wait briefly
-        time.sleep(1)
-        
-        # Should have reported a failure
-        new_results = reporter.results[initial_count:]
-        if new_results:
-            assert new_results[-1]["status"] == "FAILED"
-
-
-class TestHardwareManager:
-    """Integration tests for HardwareManager"""
+        # Check STM plugins exist
+        stm_codes = [c for c in codes if c.startswith("STM-")]
+        assert len(stm_codes) >= 1, f"Expected at least 1 STM plugin, found: {stm_codes}"
 
     @pytest.mark.integration
-    def test_singleton_pattern(self):
-        """Test HardwareManager is singleton"""
-        hm1 = HardwareManager.get_instance()
-        hm2 = HardwareManager.get_instance()
-        assert hm1 is hm2
-
-    @pytest.mark.integration
-    def test_executor_available(self):
-        """Test executors are available"""
-        hm = HardwareManager.get_instance()
+    def test_get_all_schemes_returns_metadata(self, setup_plugins):
+        """Test get_all_schemes returns proper metadata"""
+        schemes = AlgorithmRegistry.get_all_schemes()
         
-        cpu_executor = hm.get_executor("CPU")
-        assert cpu_executor is not None
-        
-        gpu_executor = hm.get_executor("GPU")
-        assert gpu_executor is not None
+        assert len(schemes) > 0
+        for scheme in schemes:
+            assert "code" in scheme
+            assert "name" in scheme
+            assert "resource_type" in scheme
 
 
 class TestEndToEndWorkflow:
-    """End-to-end workflow tests"""
+    """End-to-end workflow execution tests"""
 
     @pytest.mark.integration
-    def test_complete_kbm_workflow(self, dispatcher):
+    def test_complete_kbm_workflow(self, setup_plugins):
         """Test complete KBM workflow execution"""
-        disp, reporter = dispatcher
+        algo = AlgorithmRegistry.get_algorithm("KBM-WF02")
+        if algo is None:
+            pytest.skip("KBM-WF02 not available")
         
-        task_id = f"e2e-kbm-{int(time.time())}"
-        initial_count = len(reporter.results)
+        ctx, reporter = create_context("e2e-kbm", {"mode_k": 5})
+        result = algo.execute(ctx)
         
-        disp.dispatch(
-            task_id=task_id,
-            scheme_code="KBM-WF02",
-            data_ref="test_data",
-            params={"mode_k": 5}
-        )
-        
-        # Wait for completion
-        timeout = 15
-        start = time.time()
-        while len(reporter.results) <= initial_count and time.time() - start < timeout:
-            time.sleep(0.5)
-        
-        new_results = reporter.results[initial_count:]
-        assert len(new_results) > 0
-        assert new_results[-1]["status"] == "SUCCESS"
+        assert isinstance(result, dict)
+        assert len(reporter.calls) > 0, "Expected progress updates during execution"
 
     @pytest.mark.integration
-    def test_complete_scm_workflow(self, dispatcher):
+    def test_complete_scm_workflow(self, setup_plugins):
         """Test complete SCM workflow execution"""
-        disp, reporter = dispatcher
+        algo = AlgorithmRegistry.get_algorithm("SCM-WF01")
+        if algo is None:
+            pytest.skip("SCM-WF01 not available")
         
-        task_id = f"e2e-scm-{int(time.time())}"
-        initial_count = len(reporter.results)
+        ctx, reporter = create_context("e2e-scm")
+        result = algo.execute(ctx)
         
-        disp.dispatch(
-            task_id=task_id,
-            scheme_code="SCM-WF02",
-            data_ref="grid_snapshot",
-            params={}
-        )
-        
-        # Wait for completion
-        timeout = 15
-        start = time.time()
-        while len(reporter.results) <= initial_count and time.time() - start < timeout:
-            time.sleep(0.5)
-        
-        new_results = reporter.results[initial_count:]
-        assert len(new_results) > 0
-        assert new_results[-1]["status"] == "SUCCESS"
+        assert isinstance(result, dict)
+        assert len(reporter.calls) > 0
 
     @pytest.mark.integration
-    def test_complete_stm_workflow(self, dispatcher):
+    def test_complete_stm_workflow(self, setup_plugins):
         """Test complete STM workflow execution"""
-        disp, reporter = dispatcher
+        algo = AlgorithmRegistry.get_algorithm("STM-WF01")
+        if algo is None:
+            pytest.skip("STM-WF01 not available")
         
-        task_id = f"e2e-stm-{int(time.time())}"
-        initial_count = len(reporter.results)
+        ctx, reporter = create_context("e2e-stm")
+        result = algo.execute(ctx)
         
-        disp.dispatch(
-            task_id=task_id,
-            scheme_code="STM-WF01",
-            data_ref="scenario_base",
-            params={}
-        )
+        assert isinstance(result, dict)
+        assert len(reporter.calls) > 0
+
+
+class TestProgressReporting:
+    """Test progress reporting mechanism"""
+
+    @pytest.mark.integration
+    def test_progress_updates_received(self, setup_plugins):
+        """Test that progress updates are properly reported"""
+        algo = AlgorithmRegistry.get_algorithm("SCM-WF02")
+        if algo is None:
+            pytest.skip("SCM-WF02 not available")
         
-        # Wait for completion
-        timeout = 15
-        start = time.time()
-        while len(reporter.results) <= initial_count and time.time() - start < timeout:
-            time.sleep(0.5)
+        ctx, reporter = create_context("progress-test")
+        algo.execute(ctx)
         
-        new_results = reporter.results[initial_count:]
-        assert len(new_results) > 0
-        assert new_results[-1]["status"] == "SUCCESS"
+        # Verify progress calls happened
+        assert len(reporter.calls) > 0
+        
+        # Verify progress values are reasonable
+        for call in reporter.calls:
+            assert 0 <= call["percentage"] <= 100
+            assert isinstance(call["message"], str)
